@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rogers AM Food Services — Sales & Order Recording System</title>
+<style>
+  :root{
+    --bg:#fdf6ec; --card:#ffffff; --ink:#3a2a1a; --sub:#8a6f52;
+    --accent:#d97b3f; --accent-dark:#b35e28; --line:#eee0cc; --good:#4c8c5a; --warn:#c0392b;
+    box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){ --bg:#211a12; --card:#2c2318; --ink:#f2e9db; --sub:#c9b697; --line:#4a3c28; }
+  }
+  :root[data-theme="dark"]{ --bg:#211a12; --card:#2c2318; --ink:#f2e9db; --sub:#c9b697; --line:#4a3c28; }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;}
+  header{padding:18px 16px 10px;text-align:center}
+  header h1{margin:0;font-size:1.4rem}
+  header p{margin:4px 0 0;color:var(--sub);font-size:.85rem}
+  nav{display:flex;gap:6px;overflow-x:auto;padding:0 12px 10px;justify-content:center;flex-wrap:wrap}
+  nav button{background:var(--card);border:1px solid var(--line);color:var(--ink);padding:8px 14px;border-radius:20px;font-size:.85rem;cursor:pointer}
+  nav button.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+  main{max-width:760px;margin:0 auto;padding:0 14px 40px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+  .card h2{margin:0 0 10px;font-size:1.05rem}
+  .menu-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+  .menu-item:last-child{border-bottom:none}
+  .menu-item .name{font-weight:600}
+  .menu-item .price{color:var(--sub);font-size:.85rem}
+  .qty-controls{display:flex;align-items:center;gap:8px}
+  .qty-controls button{width:28px;height:28px;border-radius:50%;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:1rem;cursor:pointer}
+  .qty-controls span{min-width:18px;text-align:center}
+  .cart-line{display:flex;justify-content:space-between;padding:6px 0;font-size:.9rem}
+  .total-row{display:flex;justify-content:space-between;font-weight:700;font-size:1.1rem;border-top:1px solid var(--line);padding-top:10px;margin-top:6px}
+  button.primary{background:var(--accent);color:#fff;border:none;padding:11px;border-radius:10px;font-size:1rem;width:100%;cursor:pointer;margin-top:10px}
+  button.primary:disabled{opacity:.5;cursor:not-allowed}
+  button.secondary{background:transparent;border:1px solid var(--line);color:var(--ink);padding:8px 12px;border-radius:8px;font-size:.85rem;cursor:pointer}
+  button.danger{background:transparent;border:1px solid var(--warn);color:var(--warn);padding:6px 10px;border-radius:8px;font-size:.8rem;cursor:pointer}
+  input,select{width:100%;padding:9px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:.95rem;margin-top:4px}
+  label{font-size:.8rem;color:var(--sub);display:block;margin-top:8px}
+  .row{display:flex;gap:8px}
+  .row>*{flex:1}
+  .order-entry{border-bottom:1px solid var(--line);padding:10px 0}
+  .order-entry .top{display:flex;justify-content:space-between;font-weight:600;font-size:.9rem}
+  .order-entry .meta{color:var(--sub);font-size:.78rem;margin-top:2px}
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .stat{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px;text-align:center}
+  .stat .num{font-size:1.4rem;font-weight:700;color:var(--accent-dark)}
+  .stat .lbl{font-size:.75rem;color:var(--sub)}
+  .empty{color:var(--sub);font-size:.9rem;text-align:center;padding:16px 0}
+  #toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--good);color:#fff;padding:10px 18px;border-radius:20px;font-size:.9rem;opacity:0;transition:opacity .3s;pointer-events:none}
+  #toast.show{opacity:1}
+  #receiptModal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
+  #receiptModal.show{display:flex}
+  .receipt-box{background:var(--card);border-radius:12px;padding:20px;max-width:340px;width:100%;font-family:monospace}
+  .receipt-box hr{border:none;border-top:1px dashed var(--line)}
+</style>
+</head>
+<body>
+<header>
+  <h1>🍳  Rogers AM Food Services</h1>
+  <p>Sales & Order Recording System</p>
+</header>
+<nav>
+  <button data-tab="order" class="active">New Order</button>
+  <button data-tab="menu">Menu</button>
+  <button data-tab="log">Sales Log</button>
+  <button data-tab="summary">Daily Summary</button>
+</nav>
+<main>
+
+  <section id="tab-order">
+    <div class="card">
+      <h2>Take Order</h2>
+      <label>Staff Name</label>
+      <input id="staffName" placeholder="e.g. Anna">
+      <div id="menuPicker" style="margin-top:10px"></div>
+    </div>
+    <div class="card">
+      <h2>Current Order</h2>
+      <div id="cartLines"><div class="empty">No items yet. Add items above.</div></div>
+      <div class="total-row"><span>Total</span><span id="cartTotal">₱0.00</span></div>
+      <button class="primary" id="completeBtn" disabled>Complete Order</button>
+    </div>
+  </section>
+
+  <section id="tab-menu" style="display:none">
+    <div class="card">
+      <h2>Add Menu Item</h2>
+      <div class="row">
+        <div><label>Item name</label><input id="newItemName" placeholder="e.g. Tapsilog"></div>
+        <div><label>Price (₱)</label><input id="newItemPrice" type="number" min="0" step="0.5"></div>
+      </div>
+      <button class="primary" id="addItemBtn">Add to Menu</button>
+    </div>
+    <div class="card">
+      <h2>Current Menu</h2>
+      <div id="menuList"></div>
+    </div>
+  </section>
+
+  <section id="tab-log" style="display:none">
+    <div class="card">
+      <h2>Sales Log</h2>
+      <label>Filter by date</label>
+      <input type="date" id="logDateFilter">
+      <div id="logList" style="margin-top:10px"></div>
+    </div>
+  </section>
+
+  <section id="tab-summary" style="display:none">
+    <div class="card">
+      <h2>Daily Summary</h2>
+      <label>Date</label>
+      <input type="date" id="summaryDate">
+      <div class="stat-grid" style="margin-top:12px">
+        <div class="stat"><div class="num" id="sumRevenue">₱0.00</div><div class="lbl">Total Revenue</div></div>
+        <div class="stat"><div class="num" id="sumOrders">0</div><div class="lbl">Orders</div></div>
+      </div>
+      <h2 style="margin-top:16px">Best Sellers</h2>
+      <div id="bestSellers"></div>
+    </div>
+  </section>
+
+</main>
+
+<div id="toast"></div>
+<div id="receiptModal">
+  <div class="receipt-box">
+    <div style="text-align:center"><strong>Rise & Shine Breakfast Nook</strong><br><span id="rcptTime"></span></div>
+    <hr>
+    <div id="rcptLines"></div>
+    <hr>
+    <div style="display:flex;justify-content:space-between;font-weight:700"><span>TOTAL</span><span id="rcptTotal"></span></div>
+    <button class="secondary" style="width:100%;margin-top:14px" onclick="closeReceipt()">Close</button>
+  </div>
+</div>
+
+<script>
+const DEFAULT_MENU = [
+  {id:1,name:"Tapsilog",price:85},
+  {id:2,name:"Longsilog",price:75},
+  {id:3,name:"Hotsilog",price:65},
+  {id:4,name:"Pancake w/ Coffee",price:70},
+  {id:5,name:"Brewed Coffee",price:35},
+];
+
+let menu = load('menu', DEFAULT_MENU);
+let orders = load('orders', []);
+let cart = {}; // itemId -> qty
+
+function load(key, fallback){
+  try{ const v = localStorage.getItem('rsbn_'+key); return v ? JSON.parse(v) : fallback; }
+  catch(e){ return fallback; }
+}
+function save(key, val){
+  try{ localStorage.setItem('rsbn_'+key, JSON.stringify(val)); }catch(e){}
+}
+function peso(n){ return '₱' + n.toFixed(2); }
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 1600);
+}
+
+// ---- Tabs ----
+document.querySelectorAll('nav button').forEach(btn=>{
+  btn.onclick = ()=>{
+    document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    ['order','menu','log','summary'].forEach(t=>{
+      document.getElementById('tab-'+t).style.display = (t===btn.dataset.tab)?'block':'none';
+    });
+    if(btn.dataset.tab==='menu') renderMenuList();
+    if(btn.dataset.tab==='log'){
+      document.getElementById('logDateFilter').value = todayStr();
+      renderLog();
+    }
+    if(btn.dataset.tab==='summary'){
+      document.getElementById('summaryDate').value = todayStr();
+      renderSummary();
+    }
+  };
+});
+
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+
+// ---- Order tab ----
+function renderMenuPicker(){
+  const el = document.getElementById('menuPicker');
+  if(menu.length===0){ el.innerHTML = '<div class="empty">No menu items yet. Add some in the Menu tab.</div>'; return; }
+  el.innerHTML = menu.map(item=>`
+    <div class="menu-item">
+      <div><div class="name">${escapeHtml(item.name)}</div><div class="price">${peso(item.price)}</div></div>
+      <div class="qty-controls">
+        <button onclick="changeQty(${item.id},-1)">−</button>
+        <span id="qty-${item.id}">${cart[item.id]||0}</span>
+        <button onclick="changeQty(${item.id},1)">+</button>
+      </div>
+    </div>`).join('');
+}
+function changeQty(id,delta){
+  const q = (cart[id]||0)+delta;
+  if(q<=0) delete cart[id]; else cart[id]=q;
+  document.getElementById('qty-'+id).textContent = cart[id]||0;
+  renderCart();
+}
+function renderCart(){
+  const lines = Object.entries(cart);
+  const box = document.getElementById('cartLines');
+  const completeBtn = document.getElementById('completeBtn');
+  if(lines.length===0){
+    box.innerHTML = '<div class="empty">No items yet. Add items above.</div>';
+    completeBtn.disabled = true;
+    document.getElementById('cartTotal').textContent = peso(0);
+    return;
+  }
+  let total = 0;
+  box.innerHTML = lines.map(([id,qty])=>{
+    const item = menu.find(m=>m.id==id);
+    if(!item) return '';
+    const sub = item.price*qty; total += sub;
+    return `<div class="cart-line"><span>${escapeHtml(item.name)} × ${qty}</span><span>${peso(sub)}</span></div>`;
+  }).join('');
+  document.getElementById('cartTotal').textContent = peso(total);
+  completeBtn.disabled = false;
+}
+document.getElementById('completeBtn').onclick = ()=>{
+  const items = Object.entries(cart).map(([id,qty])=>{
+    const item = menu.find(m=>m.id==id);
+    return {name:item.name, price:item.price, qty};
+  });
+  const total = items.reduce((s,i)=>s+i.price*i.qty,0);
+  const order = {
+    id: Date.now(),
+    time: new Date().toISOString(),
+    staff: document.getElementById('staffName').value.trim() || '—',
+    items, total
+  };
+  orders.push(order);
+  save('orders', orders);
+  showReceipt(order);
+  cart = {};
+  renderMenuPicker();
+  renderCart();
+  toast('Order recorded!');
+};
+
+function showReceipt(order){
+  document.getElementById('rcptTime').textContent = new Date(order.time).toLocaleString();
+  document.getElementById('rcptLines').innerHTML = order.items.map(i=>
+    `<div style="display:flex;justify-content:space-between"><span>${escapeHtml(i.name)} x${i.qty}</span><span>${peso(i.price*i.qty)}</span></div>`
+  ).join('');
+  document.getElementById('rcptTotal').textContent = peso(order.total);
+  document.getElementById('receiptModal').classList.add('show');
+}
+function closeReceipt(){ document.getElementById('receiptModal').classList.remove('show'); }
+
+// ---- Menu tab ----
+document.getElementById('addItemBtn').onclick = ()=>{
+  const name = document.getElementById('newItemName').value.trim();
+  const price = parseFloat(document.getElementById('newItemPrice').value);
+  if(!name || isNaN(price) || price<0){ toast('Enter a valid name and price'); return; }
+  menu.push({id: Date.now(), name, price});
+  save('menu', menu);
+  document.getElementById('newItemName').value='';
+  document.getElementById('newItemPrice').value='';
+  renderMenuList(); renderMenuPicker();
+  toast('Item added to menu');
+};
+function renderMenuList(){
+  const el = document.getElementById('menuList');
+  if(menu.length===0){ el.innerHTML = '<div class="empty">No menu items yet.</div>'; return; }
+  el.innerHTML = menu.map(item=>`
+    <div class="menu-item">
+      <div><div class="name">${escapeHtml(item.name)}</div><div class="price">${peso(item.price)}</div></div>
+      <button class="danger" onclick="removeItem(${item.id})">Remove</button>
+    </div>`).join('');
+}
+function removeItem(id){
+  menu = menu.filter(m=>m.id!==id);
+  save('menu', menu);
+  renderMenuList(); renderMenuPicker();
+}
+
+// ---- Sales log ----
+document.getElementById('logDateFilter').onchange = renderLog;
+function renderLog(){
+  const date = document.getElementById('logDateFilter').value;
+  const filtered = orders.filter(o=>o.time.slice(0,10)===date).sort((a,b)=>b.id-a.id);
+  const el = document.getElementById('logList');
+  if(filtered.length===0){ el.innerHTML = '<div class="empty">No orders recorded for this date.</div>'; return; }
+  el.innerHTML = filtered.map(o=>`
+    <div class="order-entry">
+      <div class="top"><span>${o.items.map(i=>i.name+' x'+i.qty).join(', ')}</span><span>${peso(o.total)}</span></div>
+      <div class="meta">${new Date(o.time).toLocaleTimeString()} · Staff: ${escapeHtml(o.staff)}</div>
+    </div>`).join('');
+}
+
+// ---- Daily summary ----
+document.getElementById('summaryDate').onchange = renderSummary;
+function renderSummary(){
+  const date = document.getElementById('summaryDate').value;
+  const dayOrders = orders.filter(o=>o.time.slice(0,10)===date);
+  const revenue = dayOrders.reduce((s,o)=>s+o.total,0);
+  document.getElementById('sumRevenue').textContent = peso(revenue);
+  document.getElementById('sumOrders').textContent = dayOrders.length;
+  const counts = {};
+  dayOrders.forEach(o=>o.items.forEach(i=>{ counts[i.name] = (counts[i.name]||0) + i.qty; }));
+  const sorted = Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  const el = document.getElementById('bestSellers');
+  if(sorted.length===0){ el.innerHTML = '<div class="empty">No sales yet for this date.</div>'; return; }
+  el.innerHTML = sorted.map(([name,qty])=>`
+    <div class="menu-item"><div class="name">${escapeHtml(name)}</div><div class="price">${qty} sold</div></div>`).join('');
+}
+
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+// init
+renderMenuPicker();
+renderCart();
+document.getElementById('summaryDate').value = todayStr();
+document.getElementById('logDateFilter').value = todayStr();
+</script>
+</body>
+</html>
