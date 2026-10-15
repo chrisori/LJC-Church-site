@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grace Community Church</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- HEADER / NAVIGATION -->
+  <header>
+    <h1 class="logo">Grace Community Church</h1>
+    <button id="menu-btn">Menu</button>
+    <nav id="menu">
+      <a href="#home">Home</a>
+      <a href="#about">About</a>
+      <a href="#services">Services</a>
+      <a href="#events">Events</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </header>
+
+  <!-- HOME / HERO -->
+  <section id="home" class="hero">
+    <h2>Welcome to Our Church</h2>
+    <p id="greeting">God bless you!</p>
+    <a href="#services" class="button">See Service Times</a>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="about">
+    <h2>About Us</h2>
+    <p>
+      Grace Community Church is a family of believers who love God and love
+      people. We gather every week to worship, pray, and learn from the Bible.
+      Everyone is welcome here.
+    </p>
+  </section>
+
+  <!-- SERVICES -->
+  <section id="services" class="gray">
+    <h2>Service Times</h2>
+    <div class="cards">
+      <div class="card">
+        <h3>Sunday Morning</h3>
+        <p>8:00 AM</p>
+      </div>
+      <div class="card">
+        <h3>Sunday Worship</h3>
+        <p>10:30 AM</p>
+      </div>
+      <div class="card">
+        <h3>Bible Study</h3>
+        <p>Wednesday, 7:00 PM</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- EVENTS -->
+  <section id="events">
+    <h2>Upcoming Events</h2>
+    <ul>
+      <li><strong>Oct 25</strong> - Family Fellowship Lunch</li>
+      <li><strong>Nov 1</strong> - Community Food Drive</li>
+      <li><strong>Nov 14</strong> - Youth Retreat</li>
+      <li><strong>Dec 24</strong> - Christmas Eve Service</li>
+    </ul>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact" class="gray">
+    <h2>Contact Us</h2>
+    <p>123 Main Street, Your City</p>
+    <p>Phone: (000) 000-0000</p>
+
+    <form id="contact-form">
+      <input type="text" id="name" placeholder="Your name">
+      <input type="email" id="email" placeholder="Your email">
+      <textarea id="message" placeholder="Your message" rows="4"></textarea>
+      <button type="submit">Send Message</button>
+      <p id="form-message"></p>
+    </form>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>&copy; <span id="year"></span> Grace Community Church. All rights reserved.</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
+<style>
+/* Basic reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  line-height: 1.6;
+  color: #333;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Header */
+header {
+  background-color: #1e3a5f;
+  color: white;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  position: sticky;
+  top: 0;
+}
+
+.logo {
+  font-size: 22px;
+}
+
+nav a {
+  color: white;
+  text-decoration: none;
+  margin-left: 20px;
+}
+
+nav a:hover {
+  color: gold;
+}
+
+/* Menu button is hidden on big screens */
+#menu-btn {
+  display: none;
+  background-color: gold;
+  border: none;
+  padding: 8px 14px;
+  cursor: pointer;
+}
+
+/* Hero section */
+.hero {
+  background-color: #2f5d8a;
+  color: white;
+  text-align: center;
+  padding: 100px 20px;
+}
+
+.hero h2 {
+  font-size: 40px;
+  margin-bottom: 10px;
+}
+
+.hero p {
+  font-size: 20px;
+  margin-bottom: 20px;
+}
+
+.button {
+  display: inline-block;
+  background-color: gold;
+  color: #222;
+  padding: 12px 24px;
+  text-decoration: none;
+  border-radius: 5px;
+}
+
+.button:hover {
+  background-color: #e6c200;
+}
+
+/* Sections */
+section {
+  padding: 60px 20px;
+  text-align: center;
+}
+
+section h2 {
+  margin-bottom: 20px;
+  color: #1e3a5f;
+}
+
+section p {
+  max-width: 600px;
+  margin: 0 auto 10px;
+}
+
+.gray {
+  background-color: #f0f0f0;
+}
+
+/* Service cards */
+.cards {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.card {
+  background-color: white;
+  padding: 20px;
+  width: 220px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.card h3 {
+  margin-bottom: 8px;
+}
+
+/* Events list */
+ul {
+  list-style: none;
+}
+
+li {
+  margin-bottom: 10px;
+}
+
+/* Contact form */
+form {
+  max-width: 400px;
+  margin: 20px auto 0;
+}
+
+input,
+textarea {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #aaa;
+  border-radius: 4px;
+  font-family: inherit;
+}
+
+form button {
+  background-color: #1e3a5f;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+form button:hover {
+  background-color: #2f5d8a;
+}
+
+#form-message {
+  margin-top: 10px;
+  color: green;
+}
+
+/* Footer */
+footer {
+  background-color: #1e3a5f;
+  color: white;
+  text-align: center;
+  padding: 20px;
+}
+
+/* Phone screens */
+@media (max-width: 600px) {
+  #menu-btn {
+    display: block;
+  }
+
+  nav {
+    display: none;
+    width: 100%;
+  }
+
+  nav.open {
+    display: block;
+  }
+
+  nav a {
+    display: block;
+    margin: 10px 0 0;
+  }
+
+  .hero h2 {
+    font-size: 30px;
+  }
+}
+</style>
+<script>
+// 1. Open and close the menu on phones
+var menuBtn = document.getElementById("menu-btn");
+var menu = document.getElementById("menu");
+
+menuBtn.addEventListener("click", function () {
+  menu.classList.toggle("open");
+});
+
+// Close the menu after clicking a link
+var links = menu.getElementsByTagName("a");
+for (var i = 0; i < links.length; i++) {
+  links[i].addEventListener("click", function () {
+    menu.classList.remove("open");
+  });
+}
+
+// 2. Show a greeting based on the time of day
+var hour = new Date().getHours();
+var greeting = document.getElementById("greeting");
+
+if (hour < 12) {
+  greeting.textContent = "Good morning! God bless you.";
+} else if (hour < 18) {
+  greeting.textContent = "Good afternoon! God bless you.";
+} else {
+  greeting.textContent = "Good evening! God bless you.";
+}
+
+// 3. Contact form: check the inputs and show a message
+var form = document.getElementById("contact-form");
+var formMessage = document.getElementById("form-message");
+
+form.addEventListener("submit", function (event) {
+  event.preventDefault(); // stop the page from reloading
+
+  var name = document.getElementById("name").value;
+  var email = document.getElementById("email").value;
+  var message = document.getElementById("message").value;
+
+  if (name === "" || email === "" || message === "") {
+    formMessage.style.color = "red";
+    formMessage.textContent = "Please fill in all the boxes.";
+  } else {
+    formMessage.style.color = "green";
+    formMessage.textContent = "Thank you, " + name + "! We got your message.";
+    form.reset();
+  }
+});
+
+// 4. Put the current year in the footer
+document.getElementById("year").textContent = new Date().getFullYear();
+
+
+</script>
