@@ -7,6 +7,15 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grace Community Church</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
 
   <!-- HEADER / NAVIGATION -->
   <header>
@@ -22,7 +31,7 @@
   </header>
 
   <!-- HOME / HERO -->
-  <section id="home" class="hero">
+  <section id="home" class="home">
     <h2>Welcome to Our Church</h2>
     <p id="greeting">God bless you!</p>
     <a href="#services" class="button">See Service Times</a>
@@ -61,9 +70,9 @@
   <section id="events">
     <h2>Upcoming Events</h2>
     <ul>
-      <li><strong>Oct 25</strong> - Family Fellowship Lunch</li>
-      <li><strong>Nov 1</strong> - Community Food Drive</li>
-      <li><strong>Nov 14</strong> - Youth Retreat</li>
+      <li><strong>Oct 25</strong> -October Praise</li>
+      <li><strong>Nov 28</strong> - Convocation</li>
+      <li><strong>Dec 15</strong> - Montalban Anniversary</li>
       <li><strong>Dec 24</strong> - Christmas Eve Service</li>
     </ul>
   </section>
@@ -88,9 +97,11 @@
     <p>&copy; <span id="year"></span> Grace Community Church. All rights reserved.</p>
   </footer>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
+  
 <style>
 /* Basic reset */
 * {
@@ -111,7 +122,7 @@ html {
 
 /* Header */
 header {
-  background-color: #1e3a5f;
+  background-color: gold;
   color: white;
   padding: 15px 20px;
   display: flex;
@@ -145,20 +156,20 @@ nav a:hover {
   cursor: pointer;
 }
 
-/* Hero section */
-.hero {
-  background-color: #2f5d8a;
+/* Hero section here to change background */
+.home {
+  background-image: url('back.jpg');
   color: white;
   text-align: center;
   padding: 100px 20px;
 }
 
-.hero h2 {
+.home h2 {
   font-size: 40px;
   margin-bottom: 10px;
 }
 
-.hero p {
+.home p {
   font-size: 20px;
   margin-bottom: 20px;
 }
@@ -287,9 +298,14 @@ footer {
     margin: 10px 0 0;
   }
 
-  .hero h2 {
+  .home h2 {
     font-size: 30px;
   }
+  
+.services:hover {
+  background-color: #2f5d8a;
+}
+
 }
 </style>
 <script>
@@ -321,11 +337,17 @@ if (hour < 12) {
   greeting.textContent = "Good evening! God bless you.";
 }
 
-// 3. Contact form: check the inputs and show a message
+// 3. Contact form: save the message in Supabase
+// Paste YOUR Supabase details here (Project Settings > API)
+var SUPABASE_URL = "https://spickatxhrrjjqdjytxh.supabase.co/rest/v1/";
+var SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwaWNrYXR4aHJyampxZGp5dHhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxNDAwMjAsImV4cCI6MjEwNzcxNjAyMH0.iAzIhF-OOYSiunywBXNHhiwifuDSyIMSJXhzlDpJHYs";
+
+var db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 var form = document.getElementById("contact-form");
 var formMessage = document.getElementById("form-message");
 
-form.addEventListener("submit", function (event) {
+form.addEventListener("submit", async function (event) {
   event.preventDefault(); // stop the page from reloading
 
   var name = document.getElementById("name").value;
@@ -335,6 +357,19 @@ form.addEventListener("submit", function (event) {
   if (name === "" || email === "" || message === "") {
     formMessage.style.color = "red";
     formMessage.textContent = "Please fill in all the boxes.";
+    return;
+  }
+
+  // Send to the "messages" table
+  var result = await db.from("messages").insert({
+    name: name,
+    email: email,
+    message: message
+  });
+
+  if (result.error) {
+    formMessage.style.color = "red";
+    formMessage.textContent = "Sorry, something went wrong. Please try again.";
   } else {
     formMessage.style.color = "green";
     formMessage.textContent = "Thank you, " + name + "! We got your message.";
