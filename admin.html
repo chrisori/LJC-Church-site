@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <title>LJC Church - Admin</title>
+
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f0f0f0; }
+.hidden { display: none; }
+
+header {
+  background-color: #1e3a5f;
+  color: white;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+button {
+  background-color: #1e3a5f;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+button:hover { background-color: #2f5d8a; }
+header button { background-color: gold; color: #222; }
+
+/* Login box */
+#login-box {
+  max-width: 360px;
+  margin: 60px auto;
+  background: white;
+  padding: 25px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+#login-box h2 { margin-bottom: 15px; color: #1e3a5f; }
+input, select {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #aaa;
+  border-radius: 4px;
+  font-family: inherit;
+}
+#login-message { color: red; margin-top: 10px; }
+
+/* Dashboard */
+main { max-width: 1000px; margin: 20px auto; padding: 0 15px; }
+h2 { color: #1e3a5f; margin: 25px 0 10px; }
+
+.stats { display: flex; gap: 15px; flex-wrap: wrap; }
+.stat {
+  background: white;
+  padding: 15px 25px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+.stat span { display: block; font-size: 30px; font-weight: bold; color: #1e3a5f; }
+
+.tools { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+.tools input, .tools select { width: auto; flex: 1; min-width: 160px; margin-bottom: 0; }
+
+.table-wrap { overflow-x: auto; background: white; border-radius: 8px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2); }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; font-size: 14px; }
+th { background-color: #1e3a5f; color: white; }
+td button { background-color: #c0392b; padding: 4px 10px; }
+.empty { padding: 15px; color: #777; }
+</style>
+</head>
+<body>
+
+  <header>
+    <h1>LJC Church Admin</h1>
+    <button id="logout-btn" class="hidden">Log out</button>
+  </header>
+
+  <!-- LOGIN -->
+  <section id="login-box">
+    <h2>Admin Login</h2>
+    <form id="login-form">
+      <input type="email" id="login-email" placeholder="Admin email">
+      <input type="password" id="login-password" placeholder="Password">
+      <button type="submit">Log in</button>
+      <p id="login-message"></p>
+    </form>
+  </section>
+
+  <!-- DASHBOARD (only shows after login) -->
+  <main id="dashboard" class="hidden">
+
+    <h2>Event Registrations</h2>
+    <div class="stats">
+      <div class="stat"><span id="count-regs">0</span>Registrations</div>
+      <div class="stat"><span id="count-people">0</span>Total people</div>
+    </div>
+
+    <h2>Records</h2>
+    <div class="tools">
+      <select id="filter-event">
+        <option value="">All events</option>
+      </select>
+      <input type="text" id="search-name" placeholder="Search by name">
+      <button id="csv-btn">Download CSV</button>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th><th>Name</th><th>Event</th><th>Phone</th><th>Email</th><th>People</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="reg-body"></tbody>
+      </table>
+      <p id="reg-empty" class="empty hidden">No records found.</p>
+    </div>
+
+    <h2>Contact Messages</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Date</th><th>Name</th><th>Email</th><th>Message</th></tr>
+        </thead>
+        <tbody id="msg-body"></tbody>
+      </table>
+      <p id="msg-empty" class="empty hidden">No messages yet.</p>
+    </div>
+
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <script>
+// Same Supabase details as your website
+var SUPABASE_URL = "https://spickatxhrrjjqdjytxh.supabase.co";
+var SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwaWNrYXR4aHJyampxZGp5dHhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxNDAwMjAsImV4cCI6MjEwNzcxNjAyMH0.iAzIhF-OOYSiunywBXNHhiwifuDSyIMSJXhzlDpJHYs";
+
+var db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+var allRows = []; // all registrations are kept here
+
+var loginBox = document.getElementById("login-box");
+var dashboard = document.getElementById("dashboard");
+var logoutBtn = document.getElementById("logout-btn");
+
+// ---------- Show / hide ----------
+function showLogin() {
+  loginBox.classList.remove("hidden");
+  dashboard.classList.add("hidden");
+  logoutBtn.classList.add("hidden");
+}
+
+function showDashboard() {
+  loginBox.classList.add("hidden");
+  dashboard.classList.remove("hidden");
+  logoutBtn.classList.remove("hidden");
+  loadRegistrations();
+  loadMessages();
+}
+
+// ---------- Login / Logout ----------
+async function checkLogin() {
+  var result = await db.auth.getSession();
+  if (result.data.session) {
+    showDashboard();
+  } else {
+    showLogin();
+  }
+}
+
+document.getElementById("login-form").addEventListener("submit", async function (event) {
+  event.preventDefault();
+  var loginMessage = document.getElementById("login-message");
+  var email = document.getElementById("login-email").value;
+  var password = document.getElementById("login-password").value;
+
+  var result = await db.auth.signInWithPassword({ email: email, password: password });
+
+  if (result.error) {
+    loginMessage.textContent = "Wrong email or password.";
+  } else {
+    loginMessage.textContent = "";
+    showDashboard();
+  }
+});
+
+logoutBtn.addEventListener("click", async function () {
+  await db.auth.signOut();
+  showLogin();
+});
+
+// ---------- Helper to make a table cell ----------
+function addCell(row, text) {
+  var td = document.createElement("td");
+  td.textContent = text || "";
+  row.appendChild(td);
+}
+
+// ---------- Registrations ----------
+async function loadRegistrations() {
+  var result = await db.from("registrations").select("*").order("created_at", { ascending: false });
+
+  if (result.error) {
+    alert("Could not load records: " + result.error.message);
+    return;
+  }
+
+  allRows = result.data;
+  fillEventFilter();
+  drawTable();
+}
+
+function fillEventFilter() {
+  var filter = document.getElementById("filter-event");
+  var current = filter.value;
+  filter.innerHTML = '<option value="">All events</option>';
+
+  var seen = [];
+  for (var i = 0; i < allRows.length; i++) {
+    var ev = allRows[i].event;
+    if (seen.indexOf(ev) === -1) {
+      seen.push(ev);
+      var option = document.createElement("option");
+      option.value = ev;
+      option.textContent = ev;
+      filter.appendChild(option);
+    }
+  }
+  filter.value = current;
+}
+
+function getFilteredRows() {
+  var eventValue = document.getElementById("filter-event").value;
+  var searchValue = document.getElementById("search-name").value.toLowerCase();
+  var rows = [];
+
+  for (var i = 0; i < allRows.length; i++) {
+    var r = allRows[i];
+    var matchEvent = (eventValue === "" || r.event === eventValue);
+    var matchName = r.name.toLowerCase().indexOf(searchValue) !== -1;
+    if (matchEvent && matchName) {
+      rows.push(r);
+    }
+  }
+  return rows;
+}
+
+function drawTable() {
+  var body = document.getElementById("reg-body");
+  var rows = getFilteredRows();
+  var totalPeople = 0;
+  body.innerHTML = "";
+
+  for (var i = 0; i < rows.length; i++) {
+    var r = rows[i];
+    totalPeople = totalPeople + (r.guests || 1);
+
+    var tr = document.createElement("tr");
+    addCell(tr, new Date(r.created_at).toLocaleString());
+    addCell(tr, r.name);
+    addCell(tr, r.event);
+    addCell(tr, r.phone);
+    addCell(tr, r.email);
+    addCell(tr, r.guests);
+
+    var td = document.createElement("td");
+    var btn = document.createElement("button");
+    btn.textContent = "Delete";
+    btn.setAttribute("data-id", r.id);
+    btn.addEventListener("click", deleteRegistration);
+    td.appendChild(btn);
+    tr.appendChild(td);
+
+    body.appendChild(tr);
+  }
+
+  document.getElementById("count-regs").textContent = rows.length;
+  document.getElementById("count-people").textContent = totalPeople;
+  document.getElementById("reg-empty").classList.toggle("hidden", rows.length > 0);
+}
+
+async function deleteRegistration(event) {
+  var id = event.target.getAttribute("data-id");
+  if (!confirm("Delete this record?")) {
+    return;
+  }
+  var result = await db.from("registrations").delete().eq("id", id);
+  if (result.error) {
+    alert("Could not delete: " + result.error.message);
+  } else {
+    loadRegistrations();
+  }
+}
+
+document.getElementById("filter-event").addEventListener("change", drawTable);
+document.getElementById("search-name").addEventListener("input", drawTable);
+
+// ---------- Download CSV (opens in Excel) ----------
+document.getElementById("csv-btn").addEventListener("click", function () {
+  var rows = getFilteredRows();
+  var lines = ["Date,Name,Event,Phone,Email,People"];
+
+  for (var i = 0; i < rows.length; i++) {
+    var r = rows[i];
+    var fields = [new Date(r.created_at).toLocaleString(), r.name, r.event, r.phone, r.email, r.guests];
+    for (var j = 0; j < fields.length; j++) {
+      var text = String(fields[j] || "").replace(/"/g, '""');
+      fields[j] = '"' + text + '"';
+    }
+    lines.push(fields.join(","));
+  }
+
+  var blob = new Blob([lines.join("\n")], { type: "text/csv" });
+  var link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "registrations.csv";
+  link.click();
+});
+
+// ---------- Contact messages ----------
+async function loadMessages() {
+  var result = await db.from("messages").select("*").order("created_at", { ascending: false });
+  var body = document.getElementById("msg-body");
+  body.innerHTML = "";
+
+  if (result.error) {
+    document.getElementById("msg-empty").textContent = "Could not load messages: " + result.error.message;
+    document.getElementById("msg-empty").classList.remove("hidden");
+    return;
+  }
+
+  for (var i = 0; i < result.data.length; i++) {
+    var m = result.data[i];
+    var tr = document.createElement("tr");
+    addCell(tr, new Date(m.created_at).toLocaleString());
+    addCell(tr, m.name);
+    addCell(tr, m.email);
+    addCell(tr, m.message);
+    body.appendChild(tr);
+  }
+
+  document.getElementById("msg-empty").classList.toggle("hidden", result.data.length > 0);
+}
+
+// Start: check if the admin is already logged in
+checkLogin();
+  </script>
+</body>
+</html>
