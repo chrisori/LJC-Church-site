@@ -207,36 +207,10 @@ footer {
   padding: 20px;
 }
 
-/* Phone screens */
-@media (max-width: 600px) {
-  #menu-btn {
-    display: block;
-  }
-
-  nav {
-    display: none;
-    width: 100%;
-  }
-
-  nav.open {
-    display: block;
-  }
-
-  nav a {
-    display: block;
-    margin: 10px 0 0;
-  }
-
-  .home h2 {
-    font-size: 30px;
-  }
-
-    .hero-text {
-    position: static;
-    background-color: transparent;
-    padding: 30px 20px;
-  }
-}  /* this closing bracket was missing */
+footer a {
+  color: gold;
+  font-size: 14px;
+}
 
 /* Social icons */
 .socials {
@@ -262,8 +236,38 @@ footer {
 .socials a:hover {
   opacity: 0.7;
 }
-</style>
 
+/* Phone screens */
+@media (max-width: 600px) {
+  #menu-btn {
+    display: block;
+  }
+
+  nav {
+    display: none;
+    width: 100%;
+  }
+
+  nav.open {
+    display: block;
+  }
+
+  nav a {
+    display: block;
+    margin: 10px 0 0;
+  }
+
+  .home h2 {
+    font-size: 30px;
+  }
+
+  .hero-text {
+    position: static;
+    background-color: transparent;
+    padding: 30px 20px;
+  }
+}
+</style>
 </head>
 <body>
 
@@ -287,7 +291,7 @@ footer {
     <div class="hero-text">
       <h2>Welcome to Our Church</h2>
       <p id="greeting">God bless you!</p>
-      <a href="#register" class="button">I want to register</a>
+      <a href="#services" class="button">See Service Times</a>
     </div>
   </section>
 
@@ -323,11 +327,8 @@ footer {
   <!-- EVENTS -->
   <section id="events">
     <h2>Upcoming Events</h2>
-    <ul>
-      <li><strong>Oct 25</strong> - October Praise</li>
-      <li><strong>Nov 28</strong> - Convocation</li>
-      <li><strong>Dec 15</strong> - Montalban Anniversary</li>
-      <li><strong>Dec 24</strong> - Christmas Eve Service</li>
+    <ul id="events-list">
+      <li>Loading events...</li>
     </ul>
   </section>
 
@@ -339,9 +340,6 @@ footer {
     <form id="reg-form">
       <select id="reg-event">
         <option value="">Choose an event</option>
-        <option>Convocation (Nov 28)</option>
-        <option>Montalban Anniversary (Dec 15)</option>
-        <option>Christmas Eve Service (Dec 24)</option>
       </select>
       <input type="text" id="reg-name" placeholder="Your full name">
       <input type="tel" id="reg-phone" placeholder="Phone number">
@@ -373,15 +371,16 @@ footer {
     <a href="admin.html" style="color:inherit">Admin</a>
 
     <div class="socials">
-       <a href="https://www.facebook.com/uniasisaguja" class="facebook">
-        <i class="fa-brands fa-facebook fa-2x"></i> </a>
-<a href="https://www.youtube.com/@pastoruniaguja9051" class="youtube">
-  <i class="fa-brands fa-youtube fa-2x"></i>
-        </a>
+      <a href="https://www.facebook.com/uniasisaguja" class="facebook" aria-label="Facebook">
+        <i class="fa-brands fa-facebook fa-2x"></i>
+      </a>
+      <a href="https://www.youtube.com/@pastoruniaguja9051" class="youtube" aria-label="YouTube">
+        <i class="fa-brands fa-youtube fa-2x"></i>
+      </a>
     </div>
   </footer>
 
-    <audio id="bg-music" src="music.mp3" loop></audio>
+  <audio id="bg-music" src="music.mp3" loop></audio>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
   <script>
@@ -495,9 +494,56 @@ regForm.addEventListener("submit", async function (event) {
   }
 });
 
-// 5. Put the current year in the footer
+// 5. Events from Supabase (the admin adds them)
+async function loadEvents() {
+  var list = document.getElementById("events-list");
+  var dropdown = document.getElementById("reg-event");
+
+  var now = new Date();
+  var today = now.getFullYear() + "-" +
+    String(now.getMonth() + 1).padStart(2, "0") + "-" +
+    String(now.getDate()).padStart(2, "0");
+
+  var result = await db.from("events").select("*")
+    .gte("event_date", today)
+    .order("event_date", { ascending: true });
+
+  list.innerHTML = "";
+
+  if (result.error) {
+    list.innerHTML = "<li>Could not load events.</li>";
+    return;
+  }
+
+  if (result.data.length === 0) {
+    list.innerHTML = "<li>No upcoming events yet. Please check again soon.</li>";
+    return;
+  }
+
+  for (var i = 0; i < result.data.length; i++) {
+    var ev = result.data[i];
+    var d = new Date(ev.event_date + "T00:00:00");
+    var shortDate = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+
+    var li = document.createElement("li");
+    var strong = document.createElement("strong");
+    strong.textContent = shortDate;
+    li.appendChild(strong);
+    li.appendChild(document.createTextNode(" - " + ev.title));
+    list.appendChild(li);
+
+    var option = document.createElement("option");
+    option.textContent = ev.title + " (" + shortDate + ")";
+    dropdown.appendChild(option);
+  }
+}
+
+loadEvents();
+
+// 6. Put the current year in the footer
 document.getElementById("year").textContent = new Date().getFullYear();
-// 5. Background music: starts by itself
+
+// 7. Background music: starts by itself
 var music = document.getElementById("bg-music");
 music.volume = 0.3; // 0 is silent, 1 is full volume
 

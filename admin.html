@@ -29,6 +29,7 @@ button {
   cursor: pointer;
 }
 button:hover { background-color: #2f5d8a; }
+header a { color: white; }
 header button { background-color: gold; color: #222; }
 
 /* Login box */
@@ -74,6 +75,7 @@ table { width: 100%; border-collapse: collapse; }
 th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; font-size: 14px; }
 th { background-color: #1e3a5f; color: white; }
 td button { background-color: #c0392b; padding: 4px 10px; }
+#event-message { margin: 8px 0; }
 .empty { padding: 15px; color: #777; }
 </style>
 </head>
@@ -81,6 +83,7 @@ td button { background-color: #c0392b; padding: 4px 10px; }
 
   <header>
     <h1>LJC Church Admin</h1>
+    <a href="index.html">&larr; Back to website</a>
     <button id="logout-btn" class="hidden">Log out</button>
   </header>
 
@@ -97,6 +100,23 @@ td button { background-color: #c0392b; padding: 4px 10px; }
 
   <!-- DASHBOARD (only shows after login) -->
   <main id="dashboard" class="hidden">
+
+    <h2>Manage Events</h2>
+    <form id="event-form" class="tools">
+      <input type="text" id="event-title" placeholder="Event name">
+      <input type="date" id="event-date">
+      <button type="submit">Add Event</button>
+    </form>
+    <p id="event-message"></p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Date</th><th>Event</th><th></th></tr>
+        </thead>
+        <tbody id="event-body"></tbody>
+      </table>
+      <p id="event-empty" class="empty hidden">No events yet.</p>
+    </div>
 
     <h2>Event Registrations</h2>
     <div class="stats">
@@ -163,6 +183,7 @@ function showDashboard() {
   loginBox.classList.add("hidden");
   dashboard.classList.remove("hidden");
   logoutBtn.classList.remove("hidden");
+  loadEvents();
   loadRegistrations();
   loadMessages();
 }
@@ -349,6 +370,75 @@ async function loadMessages() {
   }
 
   document.getElementById("msg-empty").classList.toggle("hidden", result.data.length > 0);
+}
+
+// ---------- Events (the admin adds events here) ----------
+async function loadEvents() {
+  var result = await db.from("events").select("*").order("event_date", { ascending: true });
+  var body = document.getElementById("event-body");
+  body.innerHTML = "";
+
+  if (result.error) {
+    alert("Could not load events: " + result.error.message);
+    return;
+  }
+
+  for (var i = 0; i < result.data.length; i++) {
+    var e = result.data[i];
+    var tr = document.createElement("tr");
+    addCell(tr, new Date(e.event_date + "T00:00:00").toLocaleDateString());
+    addCell(tr, e.title);
+
+    var td = document.createElement("td");
+    var btn = document.createElement("button");
+    btn.textContent = "Delete";
+    btn.setAttribute("data-id", e.id);
+    btn.addEventListener("click", deleteEvent);
+    td.appendChild(btn);
+    tr.appendChild(td);
+
+    body.appendChild(tr);
+  }
+
+  document.getElementById("event-empty").classList.toggle("hidden", result.data.length > 0);
+}
+
+document.getElementById("event-form").addEventListener("submit", async function (event) {
+  event.preventDefault();
+  var message = document.getElementById("event-message");
+  var title = document.getElementById("event-title").value.trim();
+  var date = document.getElementById("event-date").value;
+
+  if (title === "" || date === "") {
+    message.style.color = "red";
+    message.textContent = "Please type the event name and choose a date.";
+    return;
+  }
+
+  var result = await db.from("events").insert({ title: title, event_date: date });
+
+  if (result.error) {
+    message.style.color = "red";
+    message.textContent = "Could not add the event: " + result.error.message;
+  } else {
+    message.style.color = "green";
+    message.textContent = "Event added. It now shows on your website.";
+    document.getElementById("event-form").reset();
+    loadEvents();
+  }
+});
+
+async function deleteEvent(event) {
+  var id = event.target.getAttribute("data-id");
+  if (!confirm("Delete this event?")) {
+    return;
+  }
+  var result = await db.from("events").delete().eq("id", id);
+  if (result.error) {
+    alert("Could not delete: " + result.error.message);
+  } else {
+    loadEvents();
+  }
 }
 
 // Start: check if the admin is already logged in
