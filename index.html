@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <title>LJC Church</title>
 
 <style>
@@ -230,13 +231,39 @@ footer {
     font-size: 30px;
   }
 
-  .hero-text {
+    .hero-text {
     position: static;
     background-color: transparent;
     padding: 30px 20px;
   }
+}  /* this closing bracket was missing */
+
+/* Social icons */
+.socials {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  margin-top: 10px;
+}
+
+.socials a {
+  text-decoration: none;
+}
+
+.facebook {
+  color: #4c8df6;
+}
+
+.youtube {
+  color: #ff0000;
+}
+
+.socials a:hover {
+  opacity: 0.7;
 }
 </style>
+
 </head>
 <body>
 
@@ -260,7 +287,7 @@ footer {
     <div class="hero-text">
       <h2>Welcome to Our Church</h2>
       <p id="greeting">God bless you!</p>
-      <a href="#services" class="button">See Service Times</a>
+      <a href="#register" class="button">I want to register</a>
     </div>
   </section>
 
@@ -328,8 +355,8 @@ footer {
   <!-- CONTACT -->
   <section id="contact">
     <h2>Contact Us</h2>
-    <p>123 Main Street, Your City</p>
-    <p>Phone: (000) 000-0000</p>
+    <p>Kasiglahan Village Montalban Rizal, Cherry street</p>
+    <p>FB Page  : LJC fam</p>
 
     <form id="contact-form">
       <input type="text" id="name" placeholder="Your name">
@@ -344,7 +371,17 @@ footer {
   <footer>
     <p>&copy; <span id="year"></span> LJC Church. All rights reserved.</p>
     <a href="admin.html" style="color:inherit">Admin</a>
+
+    <div class="socials">
+       <a href="https://www.facebook.com/uniasisaguja" class="facebook">
+        <i class="fa-brands fa-facebook fa-2x"></i> </a>
+<a href="https://www.youtube.com/@pastoruniaguja9051" class="youtube">
+  <i class="fa-brands fa-youtube fa-2x"></i>
+        </a>
+    </div>
   </footer>
+
+    <audio id="bg-music" src="music.mp3" loop></audio>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
   <script>
@@ -460,6 +497,24 @@ regForm.addEventListener("submit", async function (event) {
 
 // 5. Put the current year in the footer
 document.getElementById("year").textContent = new Date().getFullYear();
+// 5. Background music: starts by itself
+var music = document.getElementById("bg-music");
+music.volume = 0.3; // 0 is silent, 1 is full volume
+
+function startMusic() {
+  music.play();
+  document.removeEventListener("click", startMusic);
+  document.removeEventListener("touchend", startMusic);
+  document.removeEventListener("keydown", startMusic);
+}
+
+// Try to play right away. If the browser blocks it,
+// wait for the first click, tap or key press.
+music.play().catch(function () {
+  document.addEventListener("click", startMusic);
+  document.addEventListener("touchend", startMusic);
+  document.addEventListener("keydown", startMusic);
+});
   </script>
 </body>
 </html>
