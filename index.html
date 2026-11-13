@@ -41,7 +41,15 @@ header {
 }
 
 .logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   font-size: 22px;
+}
+
+.logo-img {
+  height: 40px;
+  width: auto;
 }
 
 nav a {
@@ -276,7 +284,10 @@ footer a {
 
   <!-- HEADER / NAVIGATION -->
   <header>
-    <h1 class="logo">LJC Church</h1>
+    <h1 class="logo">
+  <img src="logo.png" alt="LJC Church logo" class="logo-img">
+  LJC Church
+</h1>
     <button id="menu-btn">Menu</button>
     <nav id="menu">
       <a href="#home">Home</a>
