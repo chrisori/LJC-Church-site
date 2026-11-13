@@ -1,6 +1,6 @@
 // Service worker: lets the website work like an app
 var CACHE_NAME = "ljc-church-v1";
-var FILES = ["index.html", "icon-192.png", "icon-512.png"];
+var FILES = ["index.html", "icon.png", "icon-512.png"];
 
 // 1. Install: save the main files on the phone
 self.addEventListener("install", function (event) {
