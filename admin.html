@@ -121,7 +121,7 @@ td button { background-color: #c0392b; padding: 4px 10px; }
     <h2>Event Registrations</h2>
     <div class="stats">
       <div class="stat"><span id="count-regs">0</span>Registrations</div>
-      <div class="stat"><span id="count-Church/Place">0</span>Church/Place</div>
+      <div class="stat"><span id="count-places">0</span>Churches / places</div>
     </div>
 
     <h2>Records</h2>
@@ -137,7 +137,7 @@ td button { background-color: #c0392b; padding: 4px 10px; }
       <table>
         <thead>
           <tr>
-            <th>Date</th><th>Name</th><th>Event</th><th>Phone</th><th>Email</th><th>People</th><th></th>
+            <th>Date</th><th>Name</th><th>Event</th><th>Phone</th><th>Email</th><th>Church / Place</th><th></th>
           </tr>
         </thead>
         <tbody id="reg-body"></tbody>
@@ -278,12 +278,14 @@ function getFilteredRows() {
 function drawTable() {
   var body = document.getElementById("reg-body");
   var rows = getFilteredRows();
-  var totalPeople = 0;
+  var places = [];
   body.innerHTML = "";
 
   for (var i = 0; i < rows.length; i++) {
     var r = rows[i];
-    totalPeople = totalPeople + (r.guests || 1);
+    if (r.church && places.indexOf(r.church.toLowerCase()) === -1) {
+      places.push(r.church.toLowerCase());
+    }
 
     var tr = document.createElement("tr");
     addCell(tr, new Date(r.created_at).toLocaleString());
@@ -291,7 +293,7 @@ function drawTable() {
     addCell(tr, r.event);
     addCell(tr, r.phone);
     addCell(tr, r.email);
-    addCell(tr, r.guests);
+    addCell(tr, r.church);
 
     var td = document.createElement("td");
     var btn = document.createElement("button");
@@ -305,7 +307,7 @@ function drawTable() {
   }
 
   document.getElementById("count-regs").textContent = rows.length;
-  document.getElementById("count-people").textContent = totalPeople;
+  document.getElementById("count-places").textContent = places.length;
   document.getElementById("reg-empty").classList.toggle("hidden", rows.length > 0);
 }
 
@@ -328,11 +330,11 @@ document.getElementById("search-name").addEventListener("input", drawTable);
 // ---------- Download CSV (opens in Excel) ----------
 document.getElementById("csv-btn").addEventListener("click", function () {
   var rows = getFilteredRows();
-  var lines = ["Date,Name,Event,Phone,Email,People"];
+  var lines = ["Date,Name,Event,Phone,Email,Church / Place"];
 
   for (var i = 0; i < rows.length; i++) {
     var r = rows[i];
-    var fields = [new Date(r.created_at).toLocaleString(), r.name, r.event, r.phone, r.email, r.guests];
+    var fields = [new Date(r.created_at).toLocaleString(), r.name, r.event, r.phone, r.email, r.church];
     for (var j = 0; j < fields.length; j++) {
       var text = String(fields[j] || "").replace(/"/g, '""');
       fields[j] = '"' + text + '"';
