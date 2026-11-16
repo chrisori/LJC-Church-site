@@ -358,7 +358,7 @@ footer a {
       <input type="text" id="reg-name" placeholder="Your full name">
       <input type="tel" id="reg-phone" placeholder="Phone number">
       <input type="email" id="reg-email" placeholder="Email (optional)">
-      <input type="number" id="reg-guests" placeholder="How many people are coming?" min="1" value="1">
+           <input type="text" id="reg-church" placeholder="What church or place are you from?">
       <button type="submit">Register</button>
       <p id="reg-message"></p>
     </form>
@@ -477,16 +477,12 @@ regForm.addEventListener("submit", async function (event) {
   var name = document.getElementById("reg-name").value;
   var phone = document.getElementById("reg-phone").value;
   var email = document.getElementById("reg-email").value;
-  var guests = Number(document.getElementById("reg-guests").value);
+  var church = document.getElementById("reg-church").value;
 
-  if (eventName === "" || name === "" || phone === "") {
+  if (eventName === "" || name === "" || phone === "" || church === "") {
     regMessage.style.color = "red";
-    regMessage.textContent = "Please choose an event and fill in your name and phone number.";
+    regMessage.textContent = "Please choose an event and fill in your name, phone number and church or place.";
     return;
-  }
-
-  if (guests < 1) {
-    guests = 1;
   }
 
   var result = await db.from("registrations").insert({
@@ -494,7 +490,7 @@ regForm.addEventListener("submit", async function (event) {
     name: name,
     phone: phone,
     email: email,
-    guests: guests
+    church: church
   });
 
   if (result.error) {
@@ -504,7 +500,6 @@ regForm.addEventListener("submit", async function (event) {
     regMessage.style.color = "green";
     regMessage.textContent = "Thank you, " + name + "! You are registered for " + eventName + ".";
     regForm.reset();
-    document.getElementById("reg-guests").value = 1;
   }
 });
 
